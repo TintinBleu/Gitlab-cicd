@@ -1,0 +1,25 @@
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main" && $CI_PIPELINE_SOURCE != "merge_request_event"
+      when: never
+    - when: always
+
+stages:
+  - deploy
+
+variables:
+  DEV_SERVER_HOST: ec2-54-91-201-155.compute-1.amazonaws.com
+
+deploy_image:
+  stage: deploy
+  tags:
+    - aws
+    - ec2
+    - ubuntu
+  before_script:
+    - chmod 400 $SSH_PRIVATE_KEY
+  script:
+    - scp -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY ./docker-compose.yml ubuntu@$DEV_SERVER_HOST:/home/ubuntu/
+    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY ubuntu@$DEV_SERVER_HOST "
+        docker-compose down &&
+        docker-compose up -d "

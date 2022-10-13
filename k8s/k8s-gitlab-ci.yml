@@ -1,0 +1,25 @@
+# Gitlab runner on private cloud
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main" && $CI_PIPELINE_SOURCE != "merge_request_event"
+      when: never
+    - when: always
+
+stages:
+  - deploy
+
+variables:
+  DEV_SERVER_HOST: executor.ming.lan
+
+
+deploy_image:
+  stage: deploy
+  tags:
+    - executor
+  script:
+    - rm -rf ~/k8s
+    - mkdir ~/k8s
+    - cp ./*yaml ~/k8s/
+    - ls ~/k8s/
+    - microk8s.kubectl apply -f ~/k8s/website-namespace.yaml
+    - microk8s.kubectl apply -f ~/k8s/
